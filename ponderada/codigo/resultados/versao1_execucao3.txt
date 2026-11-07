@@ -1,0 +1,23 @@
+A4 — execução 3/3 da versão 1
+$ /opt/homebrew/opt/python@3.15/bin/python3.15 versao1.py --json resultados/versao1_execucao3.json
+
+A4 | Versão 1 | Buffer circular
+Autor: Gabriel Willian Bartmanovicz | D1=7 | D2=6 | N=4
+Python 3.15.2 | CPython
+Amostras planejadas: 20000 | Pausa inicial: 0.020 s
+Produzidas: 19824
+Consumidas: 20000 | Distintas: 17963
+Perdidas: 2037 | Duplicadas: 2037 | Inválidas: 0
+Não produzidas: 176 | Produzidas não recebidas: 1861
+Travou: NÃO | FIFO exato: NÃO
+Tempo observado: 131.622 s | Ocupadas ao final: 4
+Motivo: consumidor concluiu as leituras planejadas; conferir integridade
+Produtor: espera ocupada por espaço
+Consumidor: concluiu as leituras planejadas
+Threads ainda bloqueadas: nenhuma
+Primeiras 12 leituras: [0, 1, 2, 3, 4, 5, 6, 7, 12, 13, 14, 11]
+Primeiros IDs faltantes: [8, 9, 10, 19, 20, 29, 30, 31, 32, 37, 64, 73]
+Primeiros IDs duplicados: [12, 13, 14, 27, 28, 53, 50, 51, 52, 57, 54, 55]
+Perdidas = IDs ausentes entre 0 e planejadas-1; inclui não produzidas.
+Consumidas inclui repetições válidas; duplicadas = consumidas - distintas.
+Dados brutos salvos em: resultados/versao1_execucao3.json

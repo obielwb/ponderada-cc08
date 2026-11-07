@@ -1,0 +1,35 @@
+A1.5 | Caches do computador de Gabriel Willian Bartmanovicz
+Coleta UTC: 2026-11-07T00:37:38+00:00
+
+$ sw_vers
+ProductName:		macOS
+ProductVersion:		26.6.2
+BuildVersion:		25G83
+
+$ uname -sm
+Darwin arm64
+
+$ sysctl -n machdep.cpu.brand_string
+Apple M2
+
+$ sysctl -a | grep cachesize
+hw.perflevel0.l1icachesize: 196608
+hw.perflevel0.l1dcachesize: 131072
+hw.perflevel0.l2cachesize: 16777216
+hw.perflevel1.l1icachesize: 131072
+hw.perflevel1.l1dcachesize: 65536
+hw.perflevel1.l2cachesize: 4194304
+hw.cachesize: 3694673920 65536 4194304 0 0 0 0 0 0 0
+hw.l1icachesize: 131072
+hw.l1dcachesize: 65536
+hw.l2cachesize: 4194304
+
+$ sysctl -a | grep -E "perflevel[0-9].(name|physicalcpu|cpusperl2):"
+hw.perflevel0.physicalcpu: 4
+hw.perflevel0.cpusperl2: 4
+hw.perflevel0.name: Performance
+hw.perflevel1.physicalcpu: 4
+hw.perflevel1.cpusperl2: 4
+hw.perflevel1.name: Efficiency
+
+Tamanhos em bytes. 1 KiB = 1024 bytes; 1 MiB = 1048576 bytes.

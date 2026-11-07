@@ -1,0 +1,10 @@
+# Arquivos locais e temporários; os resultados entregues fazem parte do repositório.
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.tmp

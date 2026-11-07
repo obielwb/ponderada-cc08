@@ -1,0 +1,69 @@
+{
+  "descricao": "A4: execução real de buffer circular; métricas calculadas das leituras",
+  "executado_em_utc": "2026-11-07T00:43:53.219063+00:00",
+  "versao": 3,
+  "parametros": {
+    "nome": "Gabriel Willian Bartmanovicz",
+    "letras_primeiro_nome": 7,
+    "letras_nome_completo": 26,
+    "D1": 7,
+    "D2": 6,
+    "N": 4,
+    "IC": 220000,
+    "m": 0.065
+  },
+  "planejadas": 20000,
+  "produzidas": 4,
+  "leituras_buffer": 0,
+  "consumidas": 0,
+  "distintas": 0,
+  "perdidas": 20000,
+  "duplicadas": 0,
+  "invalidas": 0,
+  "nao_produzidas": 19996,
+  "produzidas_nao_recebidas": 4,
+  "travou": true,
+  "motivo": "watchdog: consumidor ficou 1 s sem receber nova amostra",
+  "duracao_s": 1.001474,
+  "limite_inatividade_s": 1.0,
+  "atraso_inicial_consumidor_s": 0.02,
+  "fifo_exato": false,
+  "ocupadas_final": 4,
+  "buffer_final": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "etapas_ao_encerrar": {
+    "produtor": "segura mutex; aguarda vazio",
+    "consumidor": "tem item; aguarda mutex"
+  },
+  "threads_ainda_bloqueadas": [
+    "produtor",
+    "consumidor"
+  ],
+  "primeiras_faltantes": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "primeiras_duplicatas": [],
+  "erros": [],
+  "ambiente": {
+    "python": "3.15.2",
+    "implementacao": "CPython",
+    "sistema": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "arquitetura": "arm64"
+  },
+  "sequencia_consumida": []
+}
