@@ -1,24 +1,16 @@
-# Tato — Ponderada Computação CC08
+# Ponderada Computação CC08
 
-**Autor: Gabriel Willian Bartmanovicz.**
+**Gabriel Willian Bartmanovicz**
 
-Análise de arquitetura, memória, pipeline, concorrência e deadlock de uma pulseira sensorial, com experimentos em Python e uma decisão de produção.
+Resolução da atividade sobre a pulseira sensorial da Tato, com contas de arquitetura e pipeline, experimentos de concorrência e uma decisão de produção.
 
-## Trabalho
+O trabalho completo está em [ponderada/ponderada-tato.md](ponderada/ponderada-tato.md), com as Partes A e B. Tato é a startup fictícia do enunciado.
 
-Leia [ponderada/ponderada-tato.md](ponderada/ponderada-tato.md), com as Partes A e B, contas, diagramas e resultados.
+Meu nome tem 26 letras: Gabriel (7), Willian (7) e Bartmanovicz (12). Os parâmetros são **D1 = 7, D2 = 6, N = 4, IC = 220.000 e m = 6,5%**.
 
-O nome completo foi confirmado conforme a lista de chamada: Gabriel (7), Willian (7) e Bartmanovicz (12), totalizando **26 letras**. Assim, **D1 = 7, D2 = 6, N = 4, IC = 220.000 instruções/amostra e m = 6,5%**.
+## Rodar as três versões da A4
 
-| Configuração | Tempo considerado | Cumpre 5 ms no modelo? |
-| --- | ---: | --- |
-| H | 6,875 ms | Não |
-| V, incluindo até 3 ms do Linux | 5,042333 ms | Não no pior caso do modelo |
-| H com DSP | 3,575 ms | Sim; margem de 1,425 ms |
-
-## Executar a questão A4
-
-Requer **Python 3.10 ou superior**, sem dependências externas. Na raiz deste repositório, execute um comando por versão:
+Use **Python 3.10 ou superior**, sem instalar bibliotecas externas. Abra o terminal na raiz do repositório e escolha uma versão:
 
 ```bash
 python3 ponderada/codigo/versao1.py
@@ -34,69 +26,54 @@ python3 ponderada/codigo/versao3.py
 
 No Windows, se necessário, substitua `python3` por `py -3`.
 
-Cada comando tenta produzir **20.000 amostras, de 0 a 19.999**, com buffer circular de **4 posições**. A saída informa consumidas, perdidas, duplicadas e travamento.
+Cada teste usa um buffer de **4 posições** e meta de **20.000 amostras**, numeradas de 0 a 19.999. A saída mostra consumidas, perdidas, duplicadas e se houve travamento.
 
-| Versão | Algoritmo | Comportamento investigado |
-| --- | --- | --- |
-| 1 | Contador compartilhado sem proteção, espera ocupada e `time.sleep(0)` entre leitura e escrita | Corrida, perdas, duplicações e possível travamento. |
-| 2 | `vazio = 4`, `cheio = 0`, `mutex = 1`; produtor adquire vazio antes de mutex | Entrega FIFO completa sem perdas nem duplicações. |
-| 3 | Mesmos semáforos; produtor adquire mutex antes de vazio | Deadlock ao preencher o buffer, mantendo o mutex. |
+- **Versão 1:** contador sem proteção, espera ocupada e `time.sleep(0)` entre leitura e escrita. A corrida é intencional.
+- **Versão 2:** semáforos `vazio = 4`, `cheio = 0` e `mutex = 1`, com aquisição na ordem correta.
+- **Versão 3:** produtor adquire `mutex` antes de `vazio`, permitindo o deadlock pedido na atividade.
 
-**Os defeitos das versões 1 e 3 são intencionais e exigidos pelo exercício.** Todas usam a mesma pausa inicial de 20 ms no consumidor para exercitar o buffer cheio. A produção ocorre tão rapidamente quanto possível; o experimento investiga concorrência, sem simular os 100 Hz ou demonstrar os 5 ms do produto.
+Todas usam a mesma pausa inicial de 20 ms no consumidor. O watchdog encerra a coleta após 1 segundo sem consumo; também há encerramento ao atingir 20.000 leituras. A seção A4 explica por que essa contagem, sozinha, não garante a entrega correta e como as perdas são contabilizadas. Os testes avaliam concorrência, sem medir o prazo de 5 ms da pulseira.
 
-O watchdog registra travamento após **1 segundo sem consumo**, com trabalho pendente. A coleta também termina ao atingir 20.000 leituras, mesmo com duplicatas. Por isso, o relatório verifica identificadores distintos e compara toda a sequência da versão 2 com `list(range(20000))`.
-
-**Perdidas** significa identificadores esperados ausentes, incluindo os ainda não produzidos. Os resultados separam não produzidas de produzidas não recebidas. Encerrar o processo do teste libera a sessão, mas não recupera o algoritmo em deadlock. Os números da versão 1 variam com o escalonamento.
-
-## Reproduzir a bateria de testes
+## Repetir a rodada completa
 
 ```bash
 python3 ponderada/codigo/executar_experimentos.py
 ```
 
-O executor inicia cada versão três vezes, em processos separados, e valida as métricas e o FIFO da versão 2. Os nove TXT e JSON individuais, sequências brutas, consolidado JSON, CSV e tabela Markdown ficam em [ponderada/codigo/resultados](ponderada/codigo/resultados/).
+O executor roda cada versão três vezes em processos separados. Os [resultados](ponderada/codigo/resultados/) incluem os nove logs, JSON com as sequências completas, um consolidado, CSV e tabela Markdown. A versão 2 também é verificada pela sequência FIFO completa.
 
-**Executar novamente sobrescreve essa rodada.** Antes de entregar outra rodada, atualize também a tabela A4.3 e os prints com os novos dados. A versão 1 pode demorar alguns minutos por repetição devido à espera ocupada e ao escalonamento do Python no macOS; o watchdog mede inatividade, não a duração total.
+Esse comando **sobrescreve os resultados**. Se fizer outra rodada, atualize a tabela A4.3 e os prints com ela. Na versão 1, cada repetição pode levar alguns minutos por causa da espera ocupada e do escalonamento do Python; o watchdog mede inatividade, não o tempo total.
 
-## Evidências da máquina e dos experimentos
+## Máquina e evidências
 
-As caches e as nove execuções entregues foram coletadas no **Mac do autor, Apple M2, macOS 26.6.2, arm64**. Os JSON identificam a versão efetiva do Python, o sistema e o horário UTC de cada execução. A data local da coleta é **06/11/2026, America/Sao_Paulo**.
+A coleta das caches e os nove testes foram feitos no meu **Mac com Apple M2, macOS 26.6.2, arm64**, em **06/11/2026, no horário de São Paulo**. Os JSON guardam a versão do Python, o sistema e o horário UTC de cada execução.
 
-- [Caches do Mac](ponderada/img/cache_macos.png) e [saída textual dos comandos](ponderada/img/cache_macos.txt).
-- [Print da versão 1](ponderada/img/versao1_execucao1.png), [versão 2](ponderada/img/versao2_execucao1.png) e [versão 3](ponderada/img/versao3_execucao1.png).
+- [Caches do Mac](ponderada/img/cache_macos.png) e [saída dos comandos](ponderada/img/cache_macos.txt).
+- Prints da primeira execução de cada versão: [V1](ponderada/img/versao1_execucao1.png), [V2](ponderada/img/versao2_execucao1.png) e [V3](ponderada/img/versao3_execucao1.png).
 
-Os prints são **capturas do navegador local exibindo os registros reais**, identificados no relatório e mantidos em TXT para conferência. Não são capturas do aplicativo Terminal. Os diagramas de pipeline, estados e deadlock são figuras didáticas geradas pelo código.
+Os prints mostram os registros reais abertos no navegador local. A captura direta do aplicativo Terminal ficou indisponível. Os diagramas de pipeline, estados e deadlock são figuras didáticas.
 
-A coleta da cache usa `sysctl -a | grep cachesize`, complementado por `hw.perflevel` para distinguir os núcleos Performance e Efficiency. A seção A1.5 apresenta as capacidades e a justificativa da classificação da arquitetura.
+## Recriar os diagramas
 
-## Recriar os diagramas — opcional
-
-Os cinco diagramas estão prontos. Para recriá-los, use um Python com Pillow instalado:
+Os cinco diagramas já estão em `ponderada/img/`. Para gerá-los novamente, instale Pillow no Python que usar:
 
 ```bash
 python3 -m pip install Pillow
 python3 ponderada/codigo/gerar_figuras.py
 ```
 
-O auxiliar gera apenas os diagramas e **preserva os prints reais**. Pillow não é necessário para executar a A4.
+O auxiliar preserva os prints. Pillow é usado somente nos diagramas; as três versões da A4 funcionam com a biblioteca padrão.
 
-## Organização e entrega
+## Entrega
 
-| Caminho | Conteúdo |
-| --- | --- |
-| `README.md` | Identificação e execução. |
-| `.gitignore` | Exclusão de caches e arquivos locais. |
-| `ponderada/ponderada-tato.md` | Resolução A1–A5 e memorando da Parte B. |
-| `ponderada/codigo/` | Três versões, parâmetros, executor e gerador dos diagramas. |
-| `ponderada/codigo/resultados/` | Nove execuções reais e métricas verificáveis. |
-| `ponderada/img/` | Capturas das evidências e diagramas. |
+O relatório fica em `ponderada/ponderada-tato.md`, o código e os resultados em `ponderada/codigo/`, e as imagens em `ponderada/img/`.
 
 Repositório: [obielwb/ponderada-cc08](https://github.com/obielwb/ponderada-cc08).
 
-A tag de entrega é **PONDERADA-CC08**, criada na data efetiva de publicação e apontando para o commit final. Para verificar o destino:
+A tag **PONDERADA-CC08** registra a publicação inicial. A revisão da redação, com os mesmos resultados e arquivos de código, está em **PONDERADA-CC08-REVISAO-1** e na branch `main`. Para conferir:
 
 ```bash
 git ls-remote origin refs/heads/main 'refs/tags/PONDERADA-CC08*'
 ```
 
-O ZIP contém os arquivos do trabalho, sem metadados internos do Git, caches Python ou ambientes virtuais.
+O ZIP contém os arquivos do trabalho, sem `.git`, caches Python ou ambientes virtuais.

@@ -4,7 +4,7 @@ Gabriel Willian Bartmanovicz — D1 = 7; D2 = 6; N = 4.
 
 ## Parâmetros individuais e critérios
 
-O nome considerado é **Gabriel Willian Bartmanovicz**: `Gabriel = 7`, `Willian = 7` e `Bartmanovicz = 12` letras, totalizando 26. Logo:
+Meu nome completo tem 26 letras: `Gabriel = 7`, `Willian = 7` e `Bartmanovicz = 12`. Os parâmetros ficam:
 
 $$
 D1 = 7,\qquad D2 = (7+7+12)\bmod 10 = 6
@@ -22,7 +22,7 @@ $$
 N = 3+(6\bmod5) = 4\ \text{posições}
 $$
 
-O período de amostragem é `1/100 Hz = 10 ms`, mas o prazo de processamento de **cada amostra é 5 ms**. Terminar antes da próxima leitura não basta se esses 5 ms forem ultrapassados. Os valores de hardware e custo usados a seguir são os do enunciado, não medições da pulseira.
+A pulseira recebe uma amostra a cada `1/100 Hz = 10 ms`, mas precisa processá-la em **até 5 ms**. Vou usar esse prazo nas comparações, com os valores de hardware e custo do enunciado.
 
 # Parte A — O problema técnico
 
@@ -30,7 +30,7 @@ O período de amostragem é `1/100 Hz = 10 ms`, mas o prazo de processamento de 
 
 ### A1.1. Plataforma H
 
-O tempo de CPU é a quantidade de instruções multiplicada pelos ciclos por instrução, dividida pelos ciclos por segundo:
+Para calcular o tempo, multiplico as instruções pelo CPI e divido pelo clock:
 
 $$
 T_H = \frac{IC\times CPI}{f}
@@ -38,11 +38,11 @@ T_H = \frac{IC\times CPI}{f}
 =0,006875\ s=\boxed{6,875\ ms}
 $$
 
-São `330.000 ciclos` por amostra. **A H sem DSP não atende:** excede o prazo em `6,875 − 5 = 1,875 ms`. Embora caiba no período de 10 ms, falha no requisito de latência.
+São `330.000 ciclos` por amostra. **A H sem DSP não atende:** passa do prazo em `6,875 − 5 = 1,875 ms`. Ela termina antes da próxima amostra, mas isso ainda é tarde para o limite de 5 ms.
 
 ### A1.2. Plataforma V: AMAT, CPI e atraso do Linux
 
-Adoto os **120 ciclos como penalidade adicional da falta**, coerentemente com a fórmula de CPI fornecida no enunciado. O tempo médio de acesso à memória inclui o tempo de acerto e a penalidade ponderada pela taxa de falta [R1]:
+Trato os **120 ciclos como penalidade adicional da falta**, seguindo a fórmula de CPI do enunciado. No AMAT, somo o tempo de acerto à penalidade multiplicada pela taxa de falta [R1]:
 
 $$
 AMAT = T_{acerto}+m\times P_{falta}
@@ -56,7 +56,7 @@ $$
 AMAT=8,8\times0,833333\approx\boxed{7,333333\ ns}
 $$
 
-O CPI básico já inclui o caso sem faltas. Acrescento apenas as paradas das faltas, sem contabilizar novamente o custo dos acertos:
+O CPI básico já considera os acertos. Acrescento o custo das faltas:
 
 $$
 CPI_{efetivo}=1,0+1,3\times0,065\times120
@@ -76,11 +76,11 @@ T_{V,\ pior\ caso\ do\ modelo}=2,042333+3
 \approx\boxed{5,042333\ ms}
 $$
 
-**A V atende no tempo médio calculado, mas falha no pior caso solicitado**, excedendo 5 ms em aproximadamente `0,042333 ms`. Uma taxa média de faltas não fornece um limite rigoroso de pior tempo de execução (WCET); os `5,042333 ms` são o resultado do modelo simplificado pedido, e não uma garantia temporal para qualquer carga Linux.
+**A V atende na média, mas ultrapassa o prazo no pior caso pedido em cerca de `0,042333 ms`.** A diferença é pequena, porém o requisito é de no máximo 5 ms. Esse pior caso é o do modelo do exercício: uma taxa média de faltas, sozinha, não garante o pior tempo de execução real (WCET).
 
 ### A1.3. DSP e Lei de Amdahl
 
-O filtro representa `p = 0,60` do tempo original e acelera `s = 5` vezes. Os outros 40% continuam com o mesmo custo:
+O DSP acelera o filtro em `s = 5` vezes. Como ele ocupa `p = 0,60` do tempo, os outros 40% continuam iguais:
 
 $$
 S_{global}=\frac{1}{(1-p)+p/s}
@@ -95,9 +95,9 @@ T_{H+DSP}=T_H\times0,52
 =\boxed{3,575\ ms}
 $$
 
-Conferindo pelas parcelas: o filtro passa de `6,875 × 0,60 = 4,125 ms` para `4,125/5 = 0,825 ms`; os demais trechos continuam em `6,875 × 0,40 = 2,750 ms`. A soma é `0,825 + 2,750 = 3,575 ms`.
+Conferindo por partes: o filtro cai de `6,875 × 0,60 = 4,125 ms` para `4,125/5 = 0,825 ms`. O restante leva `6,875 × 0,40 = 2,750 ms`. Somando: `0,825 + 2,750 = 3,575 ms`.
 
-**Agora atende ao modelo**, com margem de `5 − 3,575 = 1,425 ms`, ou `1,425/5 = 28,5%` do prazo. A aceleração global não é 5 vezes porque só o filtro recebeu o DSP. Na implementação, transferências para o DSP, interrupções e outros custos não incluídos precisam caber nessa margem.
+**Com DSP, a H atende no modelo:** sobram `5 − 3,575 = 1,425 ms`, ou `1,425/5 = 28,5%` do prazo. O ganho total é menor que 5 vezes porque o DSP acelera só o filtro. Na pulseira real, as transferências para o DSP e as interrupções também precisam caber nessa margem.
 
 | Configuração | Processamento calculado | Atraso adicional do SO | Tempo considerado | Atende 5 ms? |
 | --- | ---: | ---: | ---: | --- |
@@ -105,37 +105,37 @@ Conferindo pelas parcelas: o filtro passa de `6,875 × 0,60 = 4,125 ms` para `4,
 | V | 2,042333 ms | até 3 ms | 5,042333 ms | Não no pior caso do modelo |
 | H + DSP | 3,575000 ms | 0 ms | 3,575000 ms | Sim, no modelo |
 
-### A1.4. Por que cache na V e não na H? — quatro linhas
+### A1.4. Por que cache na V e não na H?
 
-Na V, a CPU de 1,2 GHz acessa DRAM externa lenta, e instruções e dados disputam o caminho para a memória: o gargalo de Von Neumann.<br>
-A cache mantém conteúdo próximo ao processador e reduz a frequência desses acessos lentos, explorando localidade [R1].<br>
-Na H descrita, instruções e dados têm caminhos separados, e a SRAM interna responde em um ciclo, de modo previsível.<br>
-Assim, nesse hardware a cache não é necessária para esconder a latência informada; ser Harvard, por si só, não proíbe o uso de cache.
+Na V, a CPU de 1,2 GHz precisa esperar pela DRAM externa; instruções e dados disputam o acesso à memória, o gargalo de Von Neumann.<br>
+A cache reduz essas esperas ao manter por perto instruções e dados usados com frequência [R1].<br>
+Na H do enunciado, os caminhos são separados e a SRAM interna responde em um ciclo.<br>
+Por isso ela funciona sem cache nessas condições; isso não significa que toda arquitetura Harvard dispense cache.
 
 ### A1.5. Evidência das caches e classificação da arquitetura
 
-**Origem da evidência:** coleta no computador do autor, com macOS 26.6.2, arquitetura arm64 e processador Apple M2. O registro contém a data UTC efetiva da coleta. O comando do enunciado foi complementado pelos campos `hw.perflevel`, pois o processador possui núcleos de desempenho e de eficiência com caches diferentes.
+A coleta foi feita no meu Mac, com **Apple M2, macOS 26.6.2 e arquitetura arm64**. Além de `sysctl -a | grep cachesize`, foram consultados os campos `hw.perflevel`, que separam os núcleos de desempenho e de eficiência. Isso importa porque os dois grupos têm caches de tamanhos diferentes.
 
 ![Captura no navegador das saídas reais de sysctl no Mac do autor](img/cache_macos.png)
 
-Registro integral: [cache_macos.txt](img/cache_macos.txt). O print é uma captura da página local de evidências no navegador, exibindo a saída dos comandos executados no Mac; não é uma janela do aplicativo Terminal nem uma imagem desenhada de terminal.
+O [registro completo](img/cache_macos.txt) inclui os comandos e o horário UTC da coleta. O print mostra esse TXT aberto no navegador local; a captura direta do aplicativo Terminal ficou indisponível.
 
 | Grupo observado | Núcleos | L1 de instruções por núcleo | L1 de dados por núcleo | L2 por grupo |
 | --- | ---: | ---: | ---: | ---: |
 | `perflevel0` — Performance | 4 | 196.608 B = 192 KiB | 131.072 B = 128 KiB | 16.777.216 B = 16 MiB |
 | `perflevel1` — Efficiency | 4 | 131.072 B = 128 KiB | 65.536 B = 64 KiB | 4.194.304 B = 4 MiB |
 
-**A L1 é dividida em instruções e dados nos dois grupos.** Isso é uma organização Harvard modificada nas caches. Na visão do programa, código e dados pertencem ao mesmo espaço de endereçamento e usam a memória principal unificada: a classificação é **Von Neumann nessa visão**, sem os espaços de memória separados de um Harvard puro [R9].
+**A L1 é separada em instruções e dados nos dois grupos.** Nas caches, isso corresponde a Harvard modificada. Já o programa usa um espaço de endereçamento e uma memória principal unificados para código e dados, então a classificação nessa visão é **Von Neumann**. Ter L1 separada não torna o computador Harvard puro [R9].
 
-Os valores de `sysctl` estão em bytes; as conversões usam `1 KiB = 1024 B` e `1 MiB = 1.048.576 B`. O campo `cpusperl2 = 4` mostra que quatro núcleos compartilham a L2 de cada grupo. Os campos genéricos `hw.l1icachesize`, `hw.l1dcachesize` e `hw.l2cachesize` correspondem ao grupo menos performante, e não à soma de todos os núcleos. Essa interpretação segue a documentação da Apple [R8]. Não deduzo uma L3 ou uma cache de sistema a partir de campos que não as identificam.
+Converti os bytes usando `1 KiB = 1024 B` e `1 MiB = 1.048.576 B`. Segundo a documentação da Apple [R8], `cpusperl2 = 4` indica quatro núcleos compartilhando a L2 de cada grupo. Os campos genéricos `hw.l1icachesize`, `hw.l1dcachesize` e `hw.l2cachesize` mostram o grupo menos performante, sem somar as caches dos núcleos. A coleta não identifica uma L3 ou cache de sistema, por isso não atribuí valores a elas.
 
 ## A2. Pipeline: o loop do filtro
 
 ### Convenções
 
-O pipeline é em ordem e tem cinco estágios: **IF, ID, EX, MEM e WB**. Considero somente hazards de dados, sem conflitos estruturais entre IF e MEM. O banco de registradores escreve na primeira metade do ciclo e lê na segunda, como especificado. Portanto, WB e a leitura dependente em ID podem ocorrer no mesmo ciclo.
+Uso os cinco estágios **IF, ID, EX, MEM e WB**, com execução em ordem e sem conflito estrutural entre IF e MEM. Como o banco de registradores escreve na primeira metade do ciclo e lê na segunda, uma instrução pode ler em ID o valor escrito em WB naquele mesmo ciclo.
 
-Na versão com forwarding, há encaminhamento para a ALU **e para o dado gravado por `sw`**. `WB*` nos diagramas é a passagem neutra da store pelo quinto estágio: `sw` altera a memória em MEM e não escreve um registrador. IF/ID repetidos significam retenção durante um stall, não reexecução da instrução. Essas convenções fixam as hipóteses necessárias à contagem [R2].
+Considero forwarding para a ALU **e para o dado de `sw`** [R2]. Nos diagramas, `WB*` marca a passagem de `sw` pelo quinto estágio, sem escrever registrador: a gravação ocorre em MEM. IF ou ID repetidos mostram a instrução parada por um stall.
 
 ```asm
 # Trecho original: identificadores I1 a I7 correspondem às linhas abaixo.
@@ -157,7 +157,7 @@ addi x11, x11, 4      # I7: avança ponteiro da antiga
 | I3 — `lw` | I4 — `sub` | x7 | Amostra antiga. |
 | I4 — `sub` | I5 — `sw` | x6 | Soma final que deve ser armazenada. |
 
-I5 precisa da versão de x6 produzida por **I4**; a relação I2 → I5 é transitiva, não outra dependência RAW direta. I1 deve ler x10 antes de I6 atualizá-lo, e I3 deve ler x11 antes de I7 atualizá-lo: essas restrições de reordenação são **WAR**, não RAW. Dependências entre iterações não entram na contagem deste trecho isolado.
+I5 usa o x6 de **I4**, a última escrita antes da store. A relação I2 → I5 é transitiva. Também preciso manter I1 antes de I6 e I3 antes de I7, para os loads lerem os ponteiros antes de eles mudarem; essas restrições são **WAR**. A contagem considera apenas este trecho, sem dependências de outra iteração.
 
 ### A2.2. Sem forwarding
 
@@ -175,7 +175,7 @@ A contagem vai do IF de I1 no ciclo 1 ao WB de I7 no ciclo 17.
 
 ![Pipeline com forwarding: 13 ciclos](img/pipeline_com_forwarding.png)
 
-Permanecem duas ocorrências de **load-use**: I1 → I2 por x5 e I3 → I4 por x7. Cada uma exige uma bolha. O primeiro `lw` entrega o dado ao final de MEM no ciclo 4; o `add` só pode usá-lo em EX no ciclo 5. Analogamente, o segundo `lw` conclui MEM no ciclo 7, e o `sub` passa a EX no ciclo 8. Forwarding não produz antecipadamente um dado que ainda está sendo lido.
+Ainda há duas dependências **load-use**: I1 → I2 por x5 e I3 → I4 por x7, cada uma com uma bolha. O primeiro `lw` entrega o dado no fim de MEM, no ciclo 4, então o `add` só o usa em EX no ciclo 5. O segundo `lw` termina MEM no ciclo 7, e o `sub` entra em EX no 8. Mesmo com forwarding, o consumidor precisa esperar a leitura da memória terminar.
 
 As demais dependências são resolvidas pelo encaminhamento, inclusive `sub → sw` para o dado da store:
 
@@ -200,7 +200,7 @@ addi x11, x11, 4      # I7
 
 ![Pipeline reordenado com forwarding: 11 ciclos](img/pipeline_reordenado.png)
 
-Agora há uma instrução independente entre cada load e o primeiro uso do dado. O `add → sub` e o `sub → sw` usam forwarding. Os loads continuam na mesma ordem relativa, antes da store, e os ponteiros só mudam depois das respectivas leituras. Assim, o resultado é preservado, inclusive se os endereços de memória coincidirem.
+Com essa troca, cada load fica separado do primeiro uso por uma instrução independente. O forwarding resolve `add → sub` e `sub → sw`. Os loads continuam na mesma ordem e antes da store, e os ponteiros só são alterados depois das leituras. Isso preserva o resultado, inclusive se os endereços coincidirem.
 
 $$
 C_{reordenado}=7+(5-1)=\boxed{11\ ciclos}
@@ -210,50 +210,39 @@ $$
 
 ### A3.1. Organização proposta para a Plataforma V
 
-| Componente | Organização | Responsabilidade e comunicação |
-| --- | --- | --- |
-| Sensor | Thread persistente do processo de controle | Acorda a cada 10 ms, lê a amostra e a publica em um buffer limitado. |
-| Processamento | Thread persistente do mesmo processo | Consome a amostra e calcula o comando de vibração. |
-| Motor | Thread persistente do mesmo processo | Aplica o comando validado, com prioridade sobre atividades de log. |
-| BLE | Processo separado, com permissões mínimas | Envia logs e recebe configurações por IPC limitado; não altera diretamente a memória do controle. |
+Eu manteria **sensor, processamento e motor como três threads de um processo de controle**, criadas na inicialização. O sensor acorda a cada 10 ms e coloca a leitura num buffer limitado; o processamento calcula a resposta; o motor aplica o comando validado. O log fica em segundo plano, sem atrasar a vibração.
 
-Sensor, processamento e motor compartilham buffers no mesmo espaço de endereçamento, evitando a cópia por IPC em cada passagem interna. Threads ainda têm pilha e registradores próprios; criar e trocar entre elas costuma ter menos custo que organizar tudo em processos independentes, mas a troca de contexto não é gratuita. Os contextos são criados uma vez na inicialização, não a cada amostra [R3, R4].
+As três threads acessam os buffers no mesmo espaço de memória, evitando uma troca por IPC a cada etapa. Cada uma tem sua pilha e seus registradores. A criação e a troca de contexto costumam custar menos do que entre processos separados, embora ainda tenham custo [R3, R4]. O ponto fraco é que uma falha de memória numa thread pode derrubar todo o controle.
 
-O custo aceito é a menor contenção de falhas dentro do processo de controle: um defeito de memória em uma dessas threads pode derrubar o conjunto. O benefício é manter curto o caminho sensor–filtro–motor. Já o BLE precisa de isolamento porque processa entrada externa e pode travar sem que a vibração deva parar.
+O **BLE ficaria num processo separado**, com acesso restrito ao rádio e ao IPC. Ele envia os logs ao celular, recebe configurações de fora e pode falhar ou travar; quero evitar que isso interrompa diretamente o sensor e o motor. Para enviar logs, usaria uma fila IPC de tamanho fixo e sem espera: se estiver cheia, o controle descarta o log e conta a perda. As configurações seriam validadas por tamanho, tipo, faixa e frequência e aplicadas entre amostras. O controle não segura um lock esperando resposta do celular.
 
-O controle envia logs por uma fila IPC de capacidade fixa e operação não bloqueante: se a fila encher, descarta o registro e contabiliza a perda. Configurações recebidas têm tamanho, frequência, tipos e faixas validados; a aplicação efetiva ocorre em um ponto seguro entre amostras. Não mantenho um lock do controle enquanto espero o celular responder.
-
-Essa divisão organiza responsabilidades e reduz dependências, mas **não corrige, por si só, os 5,042333 ms da V calculados em A1**. Para essa plataforma cumprir o requisito seria necessário reduzir e demonstrar os limites de latência do sistema, não apenas criar threads de prioridade alta.
+Essa organização precisa de testes de latência. Criar threads não elimina os **5,042333 ms** calculados para a V em A1.
 
 ### A3.2. Uma falha explorada no BLE
 
-Como **thread do processo principal**, o BLE compartilha o mesmo espaço de memória, descritores e credenciais do processo [R4]. Uma execução de código indevida pode alterar amostras, comandos do motor e parâmetros de distância, além de interromper o processo inteiro. Uma pilha por thread não é uma fronteira de segurança.
+Se o BLE for **uma thread do processo principal**, uma falha que permita executar código dá acesso à memória, aos descritores e às credenciais compartilhados [R4]. Ela pode alterar amostras, configurações e comandos do motor, ou derrubar o processo inteiro. A pilha própria da thread não oferece isolamento de segurança.
 
-Como **processo separado**, o BLE encontra uma fronteira de memória imposta pelo sistema operacional. Para tornar essa fronteira útil, ele deve ter identidade/permissões restritas, sem acesso direto ao dispositivo do motor, sem permissão de inspecionar o processo crítico e sem memória compartilhada gravável que exponha seus dados internos. O serviço recebe somente os recursos necessários ao rádio e ao IPC.
-
-A separação reduz o alcance de uma invasão; ela não torna automaticamente confiável uma mensagem recebida. Um BLE comprometido ainda pode enviar configurações maliciosas ou sobrecarregar a fila. Por isso, o controle autentica/valida as solicitações e limita a taxa de processamento. Uma falha no próprio kernel também ultrapassa essa fronteira.
+Como **processo separado**, o sistema operacional impõe uma fronteira de memória. Para ela servir de proteção, o BLE deve ter permissões mínimas, sem acesso direto ao motor, à memória do controle ou à inspeção desse processo. Ainda preciso autenticar e validar mensagens e limitar sua frequência: um BLE comprometido pode tentar enviar configurações maliciosas ou lotar a fila. Uma falha no kernel também pode romper esse isolamento.
 
 ### A3.3. Estados de um processo
 
 ![Diagrama de estados: novo, pronto, executando, bloqueado e terminado](img/estados_processo.png)
 
-O processo novo é admitido em **pronto**; o escalonador o despacha para **executando**. Uma preempção o devolve a pronto. Ao esperar E/S, evento ou temporizador, passa a **bloqueado**; a conclusão do evento o torna pronto novamente. Ao terminar, entra em **terminado**. O despertar não lhe garante a CPU imediatamente [R5].
+O processo passa de **novo** para **pronto**, e o escalonador o coloca em **executando**. Se for preemptado, volta a pronto. Se precisar esperar E/S, evento ou temporizador, fica **bloqueado**; quando a espera termina, volta a pronto e aguarda a CPU. Ao concluir, vai para **terminado** [R5].
 
-Na organização proposta, a **thread do sensor passa a maior parte do tempo bloqueada**, aguardando o temporizador periódico ou a conclusão da leitura por interrupção. Ela lê/publica rapidamente e volta a esperar pelo próximo período de 10 ms. Não faz espera ocupada. Em um processo com várias threads, uma pode estar bloqueada enquanto outra executa; os estados descritos aplicam-se individualmente às entidades escalonadas.
+A **thread do sensor fica a maior parte do tempo bloqueada**, esperando o temporizador ou a interrupção da leitura. Ela publica a amostra e volta a esperar pelo próximo período de 10 ms, sem espera ocupada. Enquanto isso, as outras threads do processo podem executar: cada thread tem seu próprio estado de escalonamento.
 
 ## A4. Buffer circular com semáforos
 
 ### A4.1. Implementação e método
 
-As três versões usam Python 3 e `threading`, com **N = 4**. Os programas e seus cabeçalhos/docstrings estão em [codigo](codigo/). Cada execução tem meta de **20.000 amostras**, sequência esperada de `0` a `19.999`, e é iniciada em um processo novo pelo executor.
+As três versões estão em [codigo](codigo/) e usam Python 3 com `threading`, **N = 4** e meta de **20.000 amostras**, de `0` a `19.999`. O executor inicia um processo novo para cada teste.
 
-Na versão 1, o contador compartilhado de ocupação é atualizado por leitura, `time.sleep(0)` e escrita, sem exclusão mútua. A verificação de buffer cheio/vazio é feita com espera ocupada. Nas três versões, o consumidor recebe a mesma pausa inicial de **20 ms**; ela permite ao produtor preencher o buffer e evidencia a ordem perigosa da versão 3. A pausa não altera artificialmente os semáforos nem injeta contagens incorretas.
+A versão 1 usa espera ocupada para verificar espaço ou amostra disponível. O contador é atualizado em três passos: leitura, `time.sleep(0)` e escrita, sem proteção. Essa pausa permite que a outra thread entre no meio da atualização; o GIL do CPython não torna a sequência inteira indivisível [R6].
 
-O monitor usa tempo monotônico e considera travamento **1 segundo sem consumo enquanto a coleta ainda não concluiu**. A outra condição de encerramento é o consumidor alcançar **20.000 retiradas**, ainda que contenham duplicatas. Nesse caso o observador também interrompe a produção que estiver pendente: atingir a meta de leituras não comprova a geração ou a entrega dos 20.000 identificadores. Os campos de integridade e de amostras não produzidas tornam esse caso explícito.
+Em todas as versões, o consumidor espera **20 ms** no início. Assim o produtor pode encher o buffer, caso que expõe a ordem errada da versão 3. O watchdog usa tempo monotônico e registra travamento após **1 segundo sem consumo**, enquanto a coleta estiver incompleta. A coleta também termina ao atingir **20.000 retiradas**, mesmo que haja duplicatas; nesse caso, a produção pendente é interrompida.
 
-Ao encerrar, o monitor registra o estado das threads e termina o processo do experimento. Não libera `mutex`, `vazio` ou `cheio` para fingir que o deadlock foi resolvido. Assim, o teste não prende indefinidamente o terminal.
-
-Este é um **ensaio de concorrência**, com produção tão rápida quanto possível, e não uma medição de cumprimento dos 5 ms nem uma simulação temporal dos 100 Hz. O GIL do CPython não transforma uma sequência de leitura–modificação–escrita em operação indivisível; a cessão explícita entre as etapas permite a intercalação que o exercício quer demonstrar [R6].
+O monitor registra o estado das threads e encerra o processo, sem liberar os semáforos bloqueados. Isso permite terminar o teste, mas não recupera o algoritmo em deadlock. Os ensaios produzem o mais rápido possível para observar concorrência; não simulam os 100 Hz nem medem o prazo de 5 ms do produto.
 
 ### A4.2. Definição das métricas
 
@@ -267,12 +256,12 @@ Este é um **ensaio de concorrência**, com produção tão rápida quanto poss�
 | Inválidas | Leituras de posições sem um identificador válido; registradas separadamente. |
 | Travou | O monitor detectou pelo menos 1 segundo sem consumo, com trabalho ainda pendente. |
 
-Em uma execução interrompida, **“perdidas” inclui amostras ainda não produzidas**. Portanto, não significa que todas foram sobrescritas dentro do buffer. Os resultados completos separam geradas, não geradas e geradas não recebidas para tornar essa diferença verificável.
+**“Perdidas” inclui IDs que ainda não foram produzidos quando o teste encerra.** Por isso, os resultados separam não produzidas de produzidas não recebidas; a coluna não mede apenas sobrescritas no buffer.
 
 ### A4.3. Nove execuções reais
 
 <!-- RESULTADOS_A4_INICIO -->
-**Ambiente medido:** Mac do autor, Apple M2, macOS 26.6.2 arm64, CPython 3.15.2. Os registros foram coletados em **06/11/2026 no horário de São Paulo**; os JSON guardam o horário UTC completo. Todas as execuções usam **N = 4** e meta de **20.000 amostras**.
+**Ambiente:** meu Mac com Apple M2, macOS 26.6.2 arm64 e CPython 3.15.2. A rodada foi coletada em **06/11/2026, no horário de São Paulo**, com **N = 4** e **20.000 amostras** por execução. Os JSON também guardam os horários em UTC.
 
 | Versão | Execução | Produzidas | Consumidas | Perdidas | Duplicadas | Inválidas | Travou? |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | :---: |
@@ -286,20 +275,20 @@ Em uma execução interrompida, **“perdidas” inclui amostras ainda não prod
 | 3 | 2 | 4 | 0 | 20000 | 0 | 0 | Sim |
 | 3 | 3 | 4 | 0 | 20000 | 0 | 0 | Sim |
 
-**Leitura dos resultados.** Na versão 1, todas as execuções atingiram 20.000 leituras, mas nenhuma entregou corretamente os 20.000 identificadores:
+O resultado que chama atenção na versão 1 é a coluna **“Travou?” marcada como “Não” nas três execuções**. Olhando só isso e as 20.000 leituras, seria fácil concluir que funcionou. Os identificadores mostram o problema:
 
 - Execução 1: 18088 IDs distintos, 1912 duplicações e 1912 IDs ausentes; destes, 52 não foram produzidos e 1860 foram produzidos, mas não recebidos.
 - Execução 2: 18125 IDs distintos, 1875 duplicações e 1875 IDs ausentes; destes, 50 não foram produzidos e 1825 foram produzidos, mas não recebidos.
 - Execução 3: 17963 IDs distintos, 2037 duplicações e 2037 IDs ausentes; destes, 176 não foram produzidos e 1861 foram produzidos, mas não recebidos.
 
-As três terminaram sem acionar o watchdog. Esse encerramento ocorreu pela meta de leituras, e **não significa entrega correta**: duplicatas contam como novas retiradas, e o monitor interrompe a produção ainda pendente.
+Na primeira execução, por exemplo, as 20.000 leituras continham só **18088 IDs distintos**. As **1912 duplicações** completaram a contagem, enquanto faltavam 1912 IDs. O consumidor atingiu a meta de retiradas e o monitor interrompeu o produtor. Portanto, a ausência de travamento não bastou para avaliar a entrega.
 
-Na versão 2, as três sequências foram exatamente `0, 1, 2, …, 19.999`, sem perdas, duplicações, leituras inválidas ou travamentos. Na versão 3, as três execuções bloquearam com **quatro amostras no buffer e nenhuma consumida**: os 20.000 IDs ausentes correspondem a **19.996 não produzidos + 4 produzidos não recebidos**. As etapas registradas confirmam o produtor segurando `mutex` e esperando `vazio`, e o consumidor esperando `mutex`.
+Na versão 2, as três sequências foram exatamente `0, 1, 2, …, 19.999`, sem perdas, duplicações, leituras inválidas ou travamentos. Na versão 3, o resultado se repetiu: **quatro amostras produzidas e nenhuma consumida**. Dos 20.000 IDs ausentes, **19.996 não chegaram a ser produzidos e 4 ficaram no buffer**. Os registros mostram o produtor segurando `mutex` enquanto espera `vazio`, e o consumidor esperando `mutex`.
 
-**Validação automática: aprovada.** As contagens foram recalculadas a partir das sequências brutas e comparadas aos JSON, CSV e logs; o FIFO integral da versão 2 passou nas três repetições.
+**Validação aprovada:** as contagens das sequências brutas conferem com JSON, CSV e logs. A comparação de toda a sequência FIFO da versão 2 passou nas três repetições.
 <!-- RESULTADOS_A4_FIM -->
 
-Os logs e métricas completos estão em [codigo/resultados](codigo/resultados/). As imagens abaixo são capturas reais do navegador local exibindo os TXT da primeira execução de cada versão. A origem da captura é a mesma descrita em A1.5. Os valores da tabela e das imagens correspondem aos registros desta rodada.
+Os [resultados completos](codigo/resultados/) incluem as sequências e os logs. Os prints abaixo mostram o TXT da primeira execução de cada versão aberto no navegador local, como em A1.5.
 
 ![Registro real da primeira execução sem sincronização](img/versao1_execucao1.png)
 
@@ -309,7 +298,7 @@ Os logs e métricas completos estão em [codigo/resultados](codigo/resultados/).
 
 ### A4.4. Região crítica e corrida na versão 1
 
-A região crítica é a operação lógica que verifica disponibilidade, acessa `buffer[indice]`, avança o índice circular e atualiza a ocupação. Mesmo com um único produtor e um único consumidor, **ambos escrevem no contador compartilhado**. A atualização precisa ser coordenada com o estado do buffer.
+A região crítica reúne a verificação de disponibilidade, o acesso a `buffer[indice]`, o avanço do índice e a atualização da ocupação. O conflito está no contador: **produtor e consumidor escrevem nele**, mesmo tendo índices próprios.
 
 Exemplo de atualização perdida, com ocupação inicial igual a 1:
 
@@ -320,7 +309,7 @@ Exemplo de atualização perdida, com ocupação inicial igual a 1:
 | 3 | Grava `ocupadas = 2` usando a leitura antiga. | — |
 | 4 | — | Grava `ocupadas = 0` usando a leitura antiga. |
 
-O valor correto final seria `1 + 1 − 1 = 1`, mas o contador informa 0. Invertendo as duas últimas escritas, ele pode informar 2. A divergência faz o produtor acreditar em espaço inexistente ou o consumidor acreditar em itens inexistentes: amostras podem ser sobrescritas, valores antigos podem ser lidos outra vez e uma thread pode esperar indefinidamente por uma condição que o contador representa incorretamente. A frequência e os números dependem do escalonamento.
+O contador deveria terminar em `1 + 1 − 1 = 1`, mas fica em 0. Se as duas últimas escritas acontecerem na ordem inversa, fica em 2. Com a ocupação errada, o produtor pode sobrescrever uma amostra e o consumidor pode reler um valor antigo. Uma thread também pode ficar esperando uma condição que o contador representa incorretamente. Os números variam conforme o escalonamento.
 
 ### A4.5. O papel de cada semáforo na versão 2
 
@@ -348,21 +337,21 @@ V(mutex)
 V(vazio)
 ```
 
-Nenhuma thread segura o mutex enquanto espera existir vaga ou amostra. Cada inserção publica exatamente um item e cada retirada devolve exatamente uma vaga. A ocupação fica entre `0` e `N`; nos pontos sem reservas intermediárias, `vazio + cheio = N`. Durante uma operação, uma vaga/item pode estar reservado, de modo que não uso essa soma como invariante de todo instante.
+A diferença é que a thread **espera por vaga ou item antes de pegar o mutex**. Cada inserção publica um item, e cada retirada devolve uma vaga, mantendo a ocupação entre `0` e `N`. Sem reservas intermediárias, `vazio + cheio = N`; durante uma operação, a vaga ou o item reservado pode ainda não ter sido publicado no outro semáforo.
 
-Nas três execuções da versão correta, o verificador também compara **toda a sequência recebida** com `list(range(20000))`. Contar 20.000 itens sozinho seria insuficiente: uma duplicata poderia compensar uma perda. O resultado é uma evidência experimental; a justificativa da correção vem do protocolo, supondo que as threads continuem sendo escalonadas e não falhem dentro da região crítica.
+A verificação compara **toda a sequência recebida** com `list(range(20000))`, incluindo a ordem. A versão 1 mostrou por que contar 20.000 leituras não basta. Os testes apoiam o resultado; a justificativa do algoritmo está nesse protocolo, supondo que as threads continuem sendo escalonadas e não falhem dentro da região crítica.
 
 ### A4.6. Por que a versão 3 trava
 
 O produtor troca somente a ordem inicial por `P(mutex); P(vazio)`. Depois de preencher as quatro posições, ele tenta inserir a quinta amostra: adquire `mutex`, mas bloqueia em `vazio`, que está em zero. O consumidor consegue reservar um item em `cheio`, mas bloqueia ao tentar entrar em `mutex`.
 
-O produtor espera uma vaga que somente o consumidor pode devolver. O consumidor espera o mutex retido pelo produtor. A espera é circular e nenhuma das duas threads alcança o `V` necessário para a outra progredir [R7]. O watchdog apenas identifica a ausência de progresso e encerra o ensaio; **não corrige a ordem errada**. Sem a pausa inicial o mesmo defeito continua possível, mas sua manifestação dependeria do escalonamento.
+Para surgir uma vaga, o consumidor precisa retirar um item. Para fazer isso, precisa do mutex que está com o produtor. Forma-se a **espera circular**, e nenhuma thread chega ao `V` que liberaria a outra [R7]. O watchdog encerra o teste sem resolver o bloqueio. Sem a pausa inicial, esse deadlock ainda seria possível, mas dependeria do escalonamento.
 
 ## A5. Deadlock entre I2C, log e BLE
 
 ### A5.1. Sequência que leva ao bloqueio
 
-Os três recursos têm uma instância protegida por semáforo binário. Uma intercalação possível é:
+Cada recurso tem uma instância, protegida por semáforo binário. O deadlock pode acontecer nesta ordem:
 
 1. `thread_sensor` executa `P(i2c)` e `le_sensor()`, mantendo I2C.
 2. `thread_log` executa `P(log)` e `le_log()`, mantendo o arquivo de log.
@@ -373,7 +362,7 @@ Os três recursos têm uma instância protegida por semáforo binário. Uma inte
 
 ![Grafo de alocação de recursos durante o deadlock](img/grafo_deadlock.png)
 
-No grafo, **recurso → thread** significa recurso alocado; **thread → recurso** significa pedido bloqueado. As alocações são `I2C → sensor`, `log → log_thread` e `BLE → configuração`. Os pedidos são `sensor → log`, `log_thread → BLE` e `configuração → I2C`. Existe um ciclo envolvendo as três threads e os três recursos; como cada recurso tem uma única instância, esse ciclo caracteriza o deadlock.
+As setas **recurso → thread** indicam alocação; **thread → recurso**, pedido bloqueado. O ciclo é `I2C → sensor → log → thread_log → BLE → configuração → I2C`. Como cada recurso tem uma única instância, esse ciclo caracteriza o deadlock.
 
 ### A5.2. Quatro condições necessárias
 
@@ -388,41 +377,41 @@ As quatro condições coexistem nessa intercalação. Quebrar pelo menos uma del
 
 ### A5.3. Correção 1: prevenção com ordem global
 
-Defino a ordem total **`i2c < log < ble`** e exijo que toda thread adquira os recursos de que precisa nessa ordem, liberando-os na ordem inversa. Sensor usa `i2c → log`, log usa `log → ble`, e configuração passa a usar `i2c → ble`. Assim, nenhuma cadeia de pedidos pode voltar a um recurso de ordem menor e fechar um ciclo [R10].
+Minha primeira correção seria impor **`i2c < log < ble`** como ordem de aquisição, liberando na ordem inversa. Sensor continua com `i2c → log`, log com `log → ble`, e configuração passa a adquirir `i2c → ble`. Sem pedidos voltando a um recurso de ordem menor, a espera circular não se forma [R10].
 
-Para a configuração, **não** basta mover `P(i2c)` para antes de uma espera ilimitada por um comando do celular. Primeiro recebo e valido o comando usando BLE isoladamente, libero o rádio e só depois aplico a configuração; caso a aplicação ainda precise dos dois recursos, adquire `i2c` e então `ble`. Operações de rádio e arquivo devem ser limitadas e não atrasar indefinidamente o sensor.
+Na configuração, eu receberia e validaria o comando com o BLE isolado, liberaria o rádio e só então aplicaria a mudança. Se essa aplicação precisasse dos dois recursos, pegaria `i2c` antes de `ble`. Segurar I2C esperando o celular responder poderia atrasar o sensor indefinidamente.
 
-**Impacto no usuário:** elimina esse congelamento por espera circular. Configurações e logs podem esperar a aquisição ordenada e sofrer atraso, custo preferível à perda da vibração. Ainda é necessário limitar o tempo das regiões críticas para cumprir os 5 ms; ausência de deadlock não implica automaticamente latência adequada.
+**Para o usuário**, isso evita o congelamento por esse ciclo. Logs e configurações podem esperar, mas o caminho do sensor não deve ficar preso a uma operação longa de rádio ou arquivo. Ainda é preciso limitar o tempo das regiões críticas para cumprir os 5 ms.
 
 ### A5.4. Correção 2: detecção e recuperação
 
-Um supervisor acompanha proprietários dos recursos e pedidos pendentes. Ao encontrar um ciclo persistente no grafo de espera, confirma o bloqueio. Um timeout ou heartbeat ausente serve como alerta, mas sozinho também pode indicar lentidão ou uma operação de E/S demorada, não prova de deadlock [R11].
+Outra opção é um supervisor registrar quem possui cada recurso e quem está esperando. Um ciclo persistente no grafo de espera permite detectar o deadlock. Timeout ou falta de heartbeat podem disparar a verificação, mas também acontecem por lentidão de E/S, então não bastam como prova [R11].
 
-A recuperação deve parar os participantes de forma controlada, descartar operações incompletas, reinicializar os estados de I2C/BLE e reconstruir os semáforos e as filas. Se uma thread travada não puder ser encerrada com segurança, um supervisor independente reinicia o processo de controle ou um watchdog independente reinicia o dispositivo. **Não libero simplesmente os semáforos de threads ainda vivas**, pois elas poderiam voltar a executar sobre dados incoerentes.
+Para recuperar, o supervisor precisa parar os participantes com segurança, descartar operações incompletas e reinicializar I2C, BLE, filas e semáforos. Se não conseguir encerrar uma thread bloqueada com segurança, reinicia o processo de controle ou usa um watchdog independente para reiniciar o dispositivo. Liberar o semáforo de uma thread ainda viva deixaria o risco de ela voltar a mexer em dados incoerentes.
 
-**Impacto no usuário:** o serviço pode voltar automaticamente, mas existe uma janela sem leitura/vibração válida, além de perda de logs e possível perda da configuração em andamento. Um caminho independente deve sinalizar a indisponibilidade; ele não pode depender do mesmo mutex travado. O usuário recebe orientação de interromper o deslocamento e recorrer ao apoio habitual. Essa estratégia limita a duração da falha, mas não garante o prazo de 5 ms durante a recuperação; é uma proteção complementar à correção estrutural.
+**Para o usuário**, a pulseira pode voltar a funcionar automaticamente, mas fica um período sem leitura ou vibração válida. Também pode perder logs e a configuração em andamento. Um aviso independente do mutex travado deve sinalizar essa indisponibilidade e orientar a pessoa a parar e recorrer ao apoio habitual. Essa recuperação limita a duração da falha, mas não mantém o prazo de 5 ms enquanto ela ocorre.
 
 # Parte B — Decisão do CTO
 
 ## Memorando ao conselho da Tato — Dilema 2
 
-**Decido produzir a Tato com a Plataforma H e o acelerador DSP.**
+**Escolho a Plataforma H com DSP para produzir a Tato.**
 
-A H sem DSP leva **6,875 ms** por amostra e descumpre o prazo de 5 ms. Com o DSP, a Lei de Amdahl reduz esse tempo a **3,575 ms**, deixando **1,425 ms de margem**. A V processa em aproximadamente 2,04 ms, mas chega a **5,042333 ms** com o atraso do Linux previsto no enunciado. Escolho a configuração que atende ao prazo no modelo, condicionando a liberação à validação no hardware.
+A H básica leva **6,875 ms** por amostra e não cumpre os 5 ms. Com o DSP, cai para **3,575 ms** e deixa **1,425 ms de margem**. A V tem a vantagem das atualizações pela internet, mas chega a **5,042333 ms** com o atraso do Linux. Mesmo passando por pouco, ela ultrapassa o limite do exercício. Para uma pulseira que avisa sobre obstáculos, eu priorizaria a margem da H com DSP.
 
-O custo é **R$ 37 por unidade**: R$ 22 da H mais R$ 15 do DSP. Aceito pagar R$ 15 além da H básica para cumprir o requisito. Em relação à V de R$ 70, economizo **R$ 33 por unidade**; num lote hipotético de mil unidades, seriam R$ 33 mil em componentes. Isso não é custo total: faltam desenvolvimento, testes, assistência e manutenção.
+Isso custa **R$ 37 por unidade: R$ 22 da H e R$ 15 do DSP**. Aceito esse acréscimo porque a H sozinha falha no prazo. Ainda são **R$ 33 a menos que os R$ 70 da V**, mas essa economia em componentes não paga automaticamente desenvolvimento e assistência.
 
-Abro mão da atualização pela internet e da flexibilidade do Linux. A empresa assume a rede de assistência e a atualização por cabo; o usuário paga com deslocamento, espera e eventual indisponibilidade da pulseira. Reservarei parte da economia para assistência e unidades de substituição, sem presumir que cubra todos esses custos.
+Abro mão do OTA e da flexibilidade do Linux. A parte difícil vem depois da venda: a empresa terá de manter atendimento e atualização por cabo. Quem usa a pulseira pode precisar se deslocar, esperar e ficar sem ela durante o serviço. Eu reservaria parte da economia para assistência e unidades de substituição, incluindo esses gastos no orçamento antes de lançar.
 
-Para quem usa a Tato, o benefício é processar dentro do prazo projetado. O risco permanece: um bug de firmware ou de BLE pode comprometer a vibração. Firmware sem Linux também pode ser explorado; atualização presencial torna a distribuição de correções mais lenta. Exigirei validação de comandos, firmware autenticado e atendimento prioritário para correções críticas. Essas medidas precisam de orçamento próprio.
+Também não trataria firmware sem Linux como garantia de segurança. Uma falha no BLE ou no firmware pode afetar a vibração, e corrigir presencialmente é mais lento. Exigiria validação de comandos, firmware autenticado e prioridade no atendimento de falhas críticas.
 
-Suspenderei a liberação se a H com DSP ultrapassar **5 ms** incluindo integração e interrupções. Mudarei para a V se uma configuração demonstrar limite de pior caso de **até 4,5 ms** para o caminho completo e economia comprovada de assistência superior aos **R$ 33 adicionais por unidade**. Até essa evidência existir, OTA não compensa descumprir o prazo.
+A liberação dependeria de medir o caminho completo no hardware: processamento, transferências e interrupções precisam caber nos **5 ms**. Eu suspenderia o lançamento se esse limite fosse ultrapassado. Mudaria para a V se ela demonstrasse pior caso de **até 4,5 ms** e uma economia de assistência que superasse os **R$ 33 adicionais por unidade**. Nessas condições, a atualização remota passaria a justificar o custo.
 
 ---
 
 ## Referências e origem dos dados
 
-Os parâmetros do produto, preços e dilemas são do enunciado fornecido. As contas e a decisão são desenvolvidas neste trabalho. Os dados experimentais são os registros reais incluídos no repositório. As fontes abaixo fundamentam os conceitos; não são benchmarks das plataformas fictícias H e V.
+Os dados das plataformas H e V, os preços e os dilemas vêm do enunciado. As contas usam meus parâmetros, e os resultados dos testes estão no repositório. Usei as referências abaixo para os conceitos de arquitetura e concorrência.
 
 - **[R1]** MIT OpenCourseWare. [6.004 — Caches and the Memory Hierarchy](https://ocw.mit.edu/courses/6-004-computation-structures-spring-2017/pages/c14/c14s1/). Fórmula de AMAT e localidade.
 - **[R2]** Rodolfo Azevedo, Unicamp. [MC732 — Pipelining and Control Dependencies](https://ic.unicamp.br/en/~rodolfo/Cursos/mc732/2026s2/slides/C04C-branch-prediction/). Pipeline de cinco estágios, forwarding e load-use.
