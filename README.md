@@ -70,7 +70,7 @@ O relatório fica em `ponderada/ponderada-tato.md`, o código e os resultados em
 
 Repositório: [obielwb/ponderada-cc08](https://github.com/obielwb/ponderada-cc08).
 
-A tag **PONDERADA-CC08** registra a publicação inicial. A revisão da redação, com os mesmos resultados e arquivos de código, está em **PONDERADA-CC08-REVISAO-1** e na branch `main`. Para conferir:
+A tag **PONDERADA-CC08** identifica a entrega e aponta para o mesmo commit da branch `main`. Para conferir:
 
 ```bash
 git ls-remote origin refs/heads/main 'refs/tags/PONDERADA-CC08*'
